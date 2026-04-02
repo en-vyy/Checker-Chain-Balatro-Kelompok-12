@@ -2,7 +2,13 @@
 #include "ScoringRule.h"
 
 ScoringRule::ScoringRule() {
-    // Rangkai gerbong dari hierarki tertinggi ke terendah
+
+
+    flushFiveChecker.setNext(&flushHouseChecker);
+    flushHouseChecker.setNext(&fiveOfAKindChecker);
+    fiveOfAKindChecker.setNext(&royalFlushChecker);
+    royalFlushChecker.setNext(&straightFlushChecker);
+    straightFlushChecker.setNext(&fourofakindChecker);  
     fourofakindChecker.setNext(&fullhouseChecker);
     fullhouseChecker.setNext(&flushchecker);
     flushchecker.setNext(&straightChecker);
@@ -15,8 +21,8 @@ ScoringRule::ScoringRule() {
 int ScoringRule::scoreHand(const Hand& hand) {
     std::cout << "Calculating hand score...\n";
     
-    // Mulai evaluasi dari ujung rantai (root) yang baru
-    HandRank rank = fourofakindChecker.check(hand);
+    // Mulai evaluasi dari ujung rantai (root) yang paling baru dan tertinggi
+    HandRank rank = flushFiveChecker.check(hand);
     
     int score = convertRankToScore(rank);
     std::cout << "Final score = " << score << "\n";
