@@ -4,6 +4,6 @@
 Hand HandGenerator::generateHand() {
     std::cout << "Generating cards for player...\n";
     Hand hand;
-    hand.value = 6; // Nilai dummy simulasi
+    hand.value = 7; // Nilai dummy simulasi
     return hand;
 }

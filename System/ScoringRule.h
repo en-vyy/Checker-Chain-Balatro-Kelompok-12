@@ -1,18 +1,30 @@
+// Di dalam ScoringRule.h yang ada di folder System:
 #pragma once
 #include "Hand.h"
 #include "PokerHandChecker.h"
-// Nanti teman Anda akan melakukan #include kelas spesifik buatannya di sini (misal: "FlushChecker.h")
+#include "../Mechanics/HighCardChecker.h"
+#include "../Mechanics/PairChecker.h"
+#include "../Mechanics/TwoPairChecker.h"
+#include "../Mechanics/ThreeOfAKindChecker.h"
+#include "../Mechanics/StraightChecker.h"
+#include "../Mechanics/FullHouseChecker.h"
+#include "../Mechanics/FourOfAKindChecker.h"
+#include "../Mechanics/FlushChecker.h"
 
 class ScoringRule {
 public:
     ScoringRule(); // Constructor untuk merangkai linked list nanti
-    int scoreHand(const Hand& hand); // Fungsi ini sekarang wajib menerima data Hand [cite: 442, 443]
+    int scoreHand(const Hand& hand);
 
 private:
-    // Deklarasikan checker sebagai member variable nanti setelah teman Anda selesai membuatnya
-    // FlushChecker flushChecker;
-    // PairChecker pairChecker;
-    
+    StraightChecker straightChecker;
+    ThreeOfAKindChecker threeOfAKindChecker;
+    TwoPairChecker twoPairChecker;
+    PairChecker pairChecker;
+    HighCardChecker highCardChecker;
+    FullHouseChecker fullhouseChecker;
+    FourOfAKindChecker fourofakindChecker;
+    FlushChecker flushchecker;
     // Fungsi internal untuk mengubah HandRank menjadi skor [cite: 466]
     int convertRankToScore(HandRank rank); 
 };
