@@ -8,7 +8,13 @@ enum class HandRank {
     THREE_OF_A_KIND,
     STRAIGHT,
     FLUSH,
-    FULL_HOUSE
+    FULL_HOUSE,
+    FOUR_OF_A_KIND,
+    STRAIGHT_FLUSH, // Tambahan baru
+    ROYAL_FLUSH,    // Tambahan baru
+    FIVE_OF_A_KIND, // Tambahan baru
+    FLUSH_HOUSE,    // Tambahan baru
+    FLUSH_FIVE      // Tambahan baru
 };
 
 class PokerHandChecker {
