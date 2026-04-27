@@ -24,37 +24,6 @@ int ScoringRule::scoreHand(const Hand& hand) {
 }
 
 int ScoringRule::convertRankToScore(HandRank rank) {
-    switch (rank) {
-        case HandRank::HIGH_CARD:
-            return 5;
-        case HandRank::PAIR:
-            return 10;
-        case HandRank::TWO_PAIR:
-            return 15;
-        case HandRank::THREE_OF_A_KIND:
-            return 20;
-        case HandRank::STRAIGHT:
-            return 25;
-        case HandRank::FLUSH:
-            return 30;
-        case HandRank::FULL_HOUSE:
-            return 35;
-        case HandRank::FOUR_OF_A_KIND:
-            return 40;
-            
-        // Kombinasi tambahan yang ada di Enum (bisa disesuaikan nilainya)
-        case HandRank::STRAIGHT_FLUSH:
-            return 60;
-        case HandRank::ROYAL_FLUSH:
-            return 80;
-        case HandRank::FIVE_OF_A_KIND:
-            return 100;
-        case HandRank::FLUSH_HOUSE:
-            return 120;
-        case HandRank::FLUSH_FIVE:
-            return 150;
-            
-        default:
-            return 0; // Nilai default jika entah kenapa gagal terdeteksi
-    }
+    // (Isi fungsi convertRankToScore Anda biarkan saja seperti sebelumnya)
+    return 5; // contoh dummy
 }
