@@ -1,8 +1,8 @@
 #pragma once
-#include "Hand.h" // Otomatis membawa ChosenHand juga
+#include "Hand.h"
+#include "ChosenHand.h" // Tambahkan baris ini
 
 class HandPlayer {
 public:
-    // Ubah tipe return-nya menjadi ChosenHand
     ChosenHand playHand(const Hand& generatedHand); 
 };
