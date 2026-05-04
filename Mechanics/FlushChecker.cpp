@@ -1,19 +1,28 @@
 #include <iostream>
 #include "FlushChecker.h"
 
-// dummy helper
-bool isFlush(const Hand& hand){
-    return hand.value == 6;
-}
+HandRank FlushChecker::check(const Hand& hand) {
+    bool isFlush = true;
+    
+    if (hand.cards.size() > 0) {
+        char firstSuit = hand.cards[0].suit;
+        for (const auto& card : hand.cards) {
+            if (card.suit != firstSuit) {
+                isFlush = false;
+                break;
+            }
+        }
+    } else {
+        isFlush = false;
+    }
 
-HandRank FlushChecker::check(const Hand& hand){
-    if (isFlush(hand)){
+    if (isFlush) {
         std::cout << "Detected FLUSH\n";
         return HandRank::FLUSH;
     }
 
-    if (nextChecker)
+    if (nextChecker != nullptr) {
         return nextChecker->check(hand);
-
+    }
     return HandRank::HIGH_CARD;
 }

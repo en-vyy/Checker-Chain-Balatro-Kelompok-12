@@ -1,14 +1,25 @@
 #include <iostream>
+#include <map>
 #include "TwoPairChecker.h"
 
 HandRank TwoPairChecker::check(const Hand& hand) {
-    // Gunakan 22 untuk Two Pair
-    if (hand.value == 8) {
+    std::map<int, int> rankCount;
+    for (const auto& card : hand.cards) {
+        rankCount[card.rank]++;
+    }
+
+    int pairCount = 0;
+    for (const auto& pair : rankCount) {
+        if (pair.second == 2) {
+            pairCount++;
+        }
+    }
+
+    if (pairCount == 2) { // Harus ada dua pasang yang berbeda
         std::cout << "Detected TWO PAIR\n";
         return HandRank::TWO_PAIR;
     }
 
-    // Jika tidak cocok, lempar ke checker selanjutnya
     if (nextChecker != nullptr) {
         return nextChecker->check(hand);
     }

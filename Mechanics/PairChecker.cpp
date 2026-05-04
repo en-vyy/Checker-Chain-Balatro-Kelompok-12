@@ -1,20 +1,28 @@
 #include <iostream>
+#include <map>
 #include "PairChecker.h"
 
-// dummy helper
-bool isPair(const Hand& hand){
+HandRank PairChecker::check(const Hand& hand) {
+    std::map<int, int> rankCount;
+    for (const auto& card : hand.cards) {
+        rankCount[card.rank]++;
+    }
 
-    return hand.value == 2;
-}
+    bool isPair = false;
+    for (const auto& pair : rankCount) {
+        if (pair.second == 2) { // Cari angka yang jumlahnya 2
+            isPair = true;
+            break;
+        }
+    }
 
-HandRank PairChecker::check(const Hand& hand){
-    if (isPair(hand)){
+    if (isPair) {
         std::cout << "Detected PAIR\n";
         return HandRank::PAIR;  
     }
     
-    if (nextChecker)
+    if (nextChecker != nullptr) {
         return nextChecker->check(hand);
-
+    }
     return HandRank::HIGH_CARD;
 }

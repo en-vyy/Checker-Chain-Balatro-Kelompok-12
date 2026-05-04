@@ -1,17 +1,29 @@
 #include <iostream>
+#include <map>
 #include "FourOfAKindChecker.h"
 
 HandRank FourOfAKindChecker::check(const Hand& hand) {
-    // 1. Cek apakah value-nya cocok (misal 4 untuk Four of a Kind)
-    if (hand.value == 4) { 
+    std::map<int, int> rankCount;
+    
+    for (const auto& card : hand.cards) {
+        rankCount[card.rank]++;
+    }
+
+    bool isFour = false;
+    for (const auto& pair : rankCount) {
+        if (pair.second == 4) {
+            isFour = true;
+            break;
+        }
+    }
+
+    if (isFour) {
         std::cout << "Detected FOUR OF A KIND\n";
         return HandRank::FOUR_OF_A_KIND;
     }
 
-    // 2. Jika tidak cocok, OPER ke checker selanjutnya!
     if (nextChecker != nullptr) {
         return nextChecker->check(hand);
     }
-    
     return HandRank::HIGH_CARD;
 }

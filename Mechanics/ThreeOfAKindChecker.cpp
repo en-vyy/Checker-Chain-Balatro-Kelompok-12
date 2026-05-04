@@ -1,14 +1,26 @@
 #include <iostream>
+#include <map>
 #include "ThreeOfAKindChecker.h"
 
 HandRank ThreeOfAKindChecker::check(const Hand& hand) {
-    // Cek apakah value-nya 3 untuk Three of a Kind
-    if (hand.value == 3) {
+    std::map<int, int> rankCount;
+    for (const auto& card : hand.cards) {
+        rankCount[card.rank]++;
+    }
+
+    bool hasThree = false;
+    for (const auto& pair : rankCount) {
+        if (pair.second == 3) {
+            hasThree = true;
+            break;
+        }
+    }
+
+    if (hasThree) {
         std::cout << "Detected THREE OF A KIND\n";
         return HandRank::THREE_OF_A_KIND;
     }
 
-    // Jika tidak cocok, lempar ke checker selanjutnya
     if (nextChecker != nullptr) {
         return nextChecker->check(hand);
     }
