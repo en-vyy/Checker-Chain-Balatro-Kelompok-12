@@ -26,8 +26,8 @@ Hand HandGenerator::generateHand() {
     
     std::shuffle(deck.begin(), deck.end(), engine);
 
-    // 3. Mengambil 5 Kartu Teratas dari Dek yang sudah dikocok
-    for (int i = 0; i < 5; ++i) {
+    // 3. Mengambil 8 Kartu Teratas dari Dek yang sudah dikocok (sebelumnya 5)
+    for (int i = 0; i < 8; ++i) {
         hand.cards.push_back(deck[i]);
     }
 
