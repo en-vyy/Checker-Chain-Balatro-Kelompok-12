@@ -2,26 +2,29 @@
 #include <map>
 #include "TwoPairChecker.h"
 
+// Two Pair butuh minimal 4 kartu; tepat DUA pair berbeda rank, tanpa three-of-a-kind
 HandRank TwoPairChecker::check(const Hand& hand) {
-    std::map<int, int> rankCount;
-    for (const auto& card : hand.cards) {
-        rankCount[card.rank]++;
+    if (hand.cards.size() < 4) {
+        if (nextChecker != nullptr) return nextChecker->check(hand);
+        return HandRank::HIGH_CARD;
     }
+
+    std::map<int, int> rankCount;
+    for (const auto& card : hand.cards) rankCount[card.rank]++;
 
     int pairCount = 0;
-    for (const auto& pair : rankCount) {
-        if (pair.second == 2) {
-            pairCount++;
-        }
+    bool hasThree = false;
+
+    for (const auto& entry : rankCount) {
+        if (entry.second == 2) pairCount++;
+        if (entry.second == 3) hasThree = true;
     }
 
-    if (pairCount == 2) { // Harus ada dua pasang yang berbeda
+    if (pairCount == 2 && !hasThree) {
         std::cout << "Detected TWO PAIR\n";
         return HandRank::TWO_PAIR;
     }
 
-    if (nextChecker != nullptr) {
-        return nextChecker->check(hand);
-    }
+    if (nextChecker != nullptr) return nextChecker->check(hand);
     return HandRank::HIGH_CARD;
 }
