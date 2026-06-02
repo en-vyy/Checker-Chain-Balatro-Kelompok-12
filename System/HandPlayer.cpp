@@ -1,75 +1,117 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <sstream>
 #include "HandPlayer.h"
+#include <iostream>
+#include <sstream>
+#include <vector>
+#include <algorithm>
 
-// Fungsi bantuan lokal (hanya bisa diakses di file ini)
-// untuk mengubah rank menjadi teks Jack-Ace
-static std::string formatRank(int rank) {
-    switch (rank) {
-        case 11: return "Jack";
-        case 12: return "Queen";
-        case 13: return "King";
-        case 14: return "Ace";
-        default: return std::to_string(rank);
-    }
+std::string HandPlayer::formatRank(int rank) {
+    if (rank == 11) return "J";
+    if (rank == 12) return "Q";
+    if (rank == 13) return "K";
+    if (rank == 14) return "A";
+    return std::to_string(rank);
 }
 
-ChosenHand HandPlayer::playHand(const Hand& generatedHand) {
-    ChosenHand chosen;
+ChosenHand HandPlayer::playHand(Hand& currentHand) {
     std::string inputLine;
-
     std::cout << "\n========================================\n";
-    std::cout << "          KARTU DI TANGAN ANDA          \n";
+    std::cout << "          PILIH KARTU DIMAINKAN         \n";
     std::cout << "========================================\n";
 
-    // Menampilkan kartu dengan konversi rank Jack-Ace
-    for (size_t i = 0; i < generatedHand.cards.size(); i++) {
-        // Memanggil fungsi formatRank di sini
-        std::cout << i + 1 << ":[" << formatRank(generatedHand.cards[i].rank)
-                   << " " << generatedHand.cards[i].suit << "]  ";
-        //Untuk print hasil yang ada di tangan maksimal 4 menyamping
+    for (size_t i = 0; i < currentHand.cards.size(); i++) {
+        std::cout << i + 1 << ":[" << formatRank(currentHand.cards[i].rank)
+                  << " " << currentHand.cards[i].suit << "]  ";
         if ((i + 1) % 4 == 0) std::cout << "\n";
     }
-    std::cout << "\n\n";
-
-    std::cout << "Pilih maksimal 5 kartu (contoh: 1 3 5), lalu Enter.\n";
+    std::cout << "\n\nPilih maksimal 5 kartu (contoh: 1 3 5), lalu Enter.\n";
     std::cout << "----------------------------------------\n";
 
+    std::vector<int> selectedIndices;
     while (true) {
         std::cout << "Masukkan pilihan: ";
         std::getline(std::cin, inputLine);
-        if (inputLine.empty()) continue;
+        
+        std::stringstream ss(inputLine);
+        int input;
+        bool inputValid = true;
+        selectedIndices.clear();
+        std::vector<bool> isSelected(currentHand.cards.size(), false);
+
+        while (ss >> input) {
+            if (selectedIndices.size() >= 5 || input < 1 || input > (int)currentHand.cards.size() || isSelected[input - 1]) {
+                inputValid = false;
+                break;
+            }
+            selectedIndices.push_back(input - 1);
+            isSelected[input - 1] = true;
+        }
+
+        if (inputValid && !selectedIndices.empty()) break;
+        std::cout << "[!] Input tidak valid. Pastikan angka benar dan dipisah spasi.\n";
+    }
+
+    // Urutkan dari belakang agar saat dihapus, index di depannya tidak bergeser
+    std::sort(selectedIndices.rbegin(), selectedIndices.rend());
+    
+    ChosenHand chosen;
+    for (int index : selectedIndices) {
+        chosen.cards.push_back(currentHand.cards[index]);
+        // Kartu yang dimainkan langsung dihapus dari tangan
+        currentHand.cards.erase(currentHand.cards.begin() + index); 
+    }
+    return chosen;
+}
+
+void HandPlayer::discardCards(Hand& currentHand) {
+    std::string inputLine;
+    std::cout << "\n========================================\n";
+    std::cout << "          PILIH KARTU DIBUANG           \n";
+    std::cout << "========================================\n";
+
+    for (size_t i = 0; i < currentHand.cards.size(); i++) {
+        std::cout << i + 1 << ":[" << formatRank(currentHand.cards[i].rank)
+                  << " " << currentHand.cards[i].suit << "]  ";
+        if ((i + 1) % 4 == 0) std::cout << "\n";
+    }
+    std::cout << "\n\nPilih maksimal 5 kartu untuk DIBUANG (contoh: 1 3 5), lalu Enter.\n";
+    std::cout << "Kosongkan lalu tekan Enter jika batal membuang.\n";
+    std::cout << "----------------------------------------\n";
+
+    std::vector<int> cardsToRemove;
+    while (true) {
+        std::cout << "Masukkan pilihan: ";
+        std::getline(std::cin, inputLine);
+        
+        if (inputLine.empty()) {
+            std::cout << "Batal membuang kartu.\n";
+            return; 
+        }
 
         std::stringstream ss(inputLine);
         int input;
         bool inputValid = true;
-        int cardCount = 0;
-        
-        chosen.cards.clear();
-        std::vector<bool> isSelected(generatedHand.cards.size(), false);
+        cardsToRemove.clear();
+        std::vector<bool> isSelected(currentHand.cards.size(), false);
 
         while (ss >> input) {
-            cardCount++;
-            if (cardCount > 5 || input < 1 || input > (int)generatedHand.cards.size() || isSelected[input - 1]) {
+            if (cardsToRemove.size() >= 5 || input < 1 || input > (int)currentHand.cards.size() || isSelected[input - 1]) {
                 inputValid = false;
                 break;
             }
-            chosen.addChosenCard(generatedHand.cards[input - 1]);
+            cardsToRemove.push_back(input - 1);
             isSelected[input - 1] = true;
         }
 
-        if (inputValid && cardCount > 0) break;
-        std::cout << "[!] Input tidak valid atau lebih dari 5 kartu. Silakan ulangi.\n";
+        if (inputValid && !cardsToRemove.empty()) break;
+        std::cout << "[!] Input tidak valid. Pastikan angka benar dan dipisah spasi.\n";
     }
 
-    // Menampilkan konfirmasi kartu yang dipilih dengan format yang sama
-    std::cout << "\nKartu yang dimainkan: \n";
-    for (const auto& c : chosen.cards) {
-        std::cout << "[" << formatRank(c.rank) << " " << c.suit << "] ";
+    std::sort(cardsToRemove.rbegin(), cardsToRemove.rend());
+    
+    std::cout << "\nKartu yang berhasil dibuang: \n";
+    for (int index : cardsToRemove) {
+        std::cout << "[" << formatRank(currentHand.cards[index].rank) << " " << currentHand.cards[index].suit << "] ";
+        currentHand.cards.erase(currentHand.cards.begin() + index);
     }
     std::cout << "\n";
-    
-    return chosen;
 }

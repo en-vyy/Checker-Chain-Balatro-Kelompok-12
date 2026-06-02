@@ -1,8 +1,16 @@
 #pragma once
 #include "Hand.h"
-#include "ChosenHand.h" // Tambahkan baris ini
+#include "ChosenHand.h"
+#include <string>
 
 class HandPlayer {
 public:
-    ChosenHand playHand(const Hand& generatedHand); 
+    // Menerima referensi (Hand&) agar kartu di tangan bisa dikurangi setelah di-play
+    ChosenHand playHand(Hand& currentHand); 
+    
+    // Fungsi baru untuk discard
+    void discardCards(Hand& currentHand); 
+
+private:
+    std::string formatRank(int rank);
 };

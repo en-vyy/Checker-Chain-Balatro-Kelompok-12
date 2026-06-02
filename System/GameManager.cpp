@@ -2,70 +2,157 @@
 #include <string>
 #include "GameManager.h"
 #include "ChosenHand.h"
-
-// --- TAMBAHKAN 2 BARIS INI JIKA BELUM ADA ---
 #include "SmallBlindState.h" 
-#include "RewardCommand.h"
+#include "BigBlindState.h"   // Wajib di-include untuk transisi level
+#include "BossBlindState.h"  // Wajib di-include untuk transisi level
+#include "RewardCommand.h"   
 
 void GameManager::runSession() {
-    std::cout << "=== Run Started ===\n";
-    
-    // 1. Inisialisasi awal: Mulai dari Small Blind
     sessionState.currentBlind = std::make_unique<SmallBlindState>();
+    sessionState.totalScore = 0;
     
-    // 2. Game Loop: Berputar terus selama pemain masih punya kesempatan 'Play'
+    // ==========================================
+    // PHASE 1: OUTER LOOP (MENU PEMILIHAN BLIND)
+    // ==========================================
     while (sessionState.remainingPlays > 0) {
         
-        // Cek apakah pemain sudah mengalahkan Boss Blind dan tidak ada state selanjutnya
+        // --- NAIK ANTE ---
         if (sessionState.currentBlind == nullptr) {
-            std::cout << "\nSelamat! Anda telah menyelesaikan semua Blind!\n";
-            break;
+            sessionState.ante++;
+            std::cout << "\n========================================\n";
+            std::cout << "🎉 BOSS DIKALAHKAN! MAJU KE ANTE " << sessionState.ante << " 🎉\n";
+            std::cout << "========================================\n";
+            
+            sessionState.currentBlind = std::make_unique<SmallBlindState>();
+            sessionState.remainingPlays = 4;
+            sessionState.remainingDiscards = 3;
+            sessionState.totalScore = 0; 
         }
 
-        // 3. Eksekusi Hadiah yang Tertunda (Command Pattern)
-        // Jika sebelumnya pemain menekan SKIP, hadiahnya ada di antrean ini
+        // Eksekusi hadiah dari SKIP sebelumnya
         for (const auto& command : sessionState.pendingCommands) {
             command->execute(sessionState);
         }
-        sessionState.pendingCommands.clear(); // Bersihkan antrean setelah dieksekusi
+        sessionState.pendingCommands.clear();
 
-        // 4. Tampilkan UI Status Saat Ini
-        std::cout << "\n========================================\n";
+        // Tampilan Layar Menu Blind
+        std::cout << "\n[ MENU BLIND ] =========================\n";
+        std::cout << " ANTE: " << sessionState.ante << "\n";
         std::cout << " STATE: " << sessionState.currentBlind->getName() << "\n";
-        std::cout << " TARGET SCORE: " << sessionState.currentBlind->getTargetScore() << "\n";
-        std::cout << " Remaining Plays: " << sessionState.remainingPlays << "\n";
-        std::cout << " Remaining Discards: " << sessionState.remainingDiscards << "\n";
+        std::cout << " TARGET: " << sessionState.currentBlind->getTargetScore() << "\n";
         std::cout << "========================================\n";
         
-        // 5. Minta Input Pemain
-        std::string input;
-        std::cout << "Pilih aksi (1: PLAY, 2: SKIP): ";
-        std::getline(std::cin, input);
+        std::string blindInput;
+        std::cout << "Aksi (1: LAWAN BLIND, 2: SKIP BLIND): ";
+        std::getline(std::cin, blindInput);
 
-        if (input == "1") {
-            // Pemain memilih PLAY
+        if (blindInput == "2") {
+            // [SKIP BLIND]
+            sessionState.currentBlind->handleSkip(sessionState);
+            sessionState.remainingPlays = 4;
+            sessionState.remainingDiscards = 3;
+            sessionState.totalScore = 0;
+            continue; // Kembali ke awal loop untuk memuat Blind baru
+
+        } else if (blindInput == "1") {
+            // [LAWAN BLIND]
             sessionState.currentBlind->handlePlay(sessionState);
             
-            // --- LOGIKA LAMA ANDA DIMASUKKAN KE SINI ---
-            Hand hand = handGenerator.generateHand(); 
-            ChosenHand chosenHand = handPlayer.playHand(hand); 
-            int score = scoringRule.scoreHand(chosenHand); 
+            // Dealer membagikan 8 kartu BARU setiap kali pemain duduk di meja
+            Hand currentHand = handGenerator.generateHand(); 
+            bool blindDefeated = false;
             
-            std::cout << "Skor yang didapat dari kartu: " << score << "\n";
-            
-            // Kurangi nyawa play karena sudah bermain satu tangan
-            sessionState.remainingPlays--; 
-            
-        } else if (input == "2") {
-            // Pemain memilih SKIP (State Pattern akan mengatur perpindahan ke Blind berikutnya)
-            sessionState.currentBlind->handleSkip(sessionState);
+            // ==========================================
+            // PHASE 2: INNER LOOP (MEJA PERMAINAN)
+            // ==========================================
+            while (sessionState.remainingPlays > 0 && !blindDefeated) {
+                std::cout << "\n[ MEJA PERMAINAN ] ---------------------\n";
+                std::cout << " TARGET: " << sessionState.currentBlind->getTargetScore() << " | SKOR: " << sessionState.totalScore << "\n";
+                std::cout << " Plays: " << sessionState.remainingPlays << " | Discards: " << sessionState.remainingDiscards << "\n";
+                std::cout << "----------------------------------------\n";
+                
+                std::string tableInput;
+                std::cout << "Aksi Meja (1: MAIN KARTU, 2: DISCARD KARTU): ";
+                std::getline(std::cin, tableInput);
+
+                if (tableInput == "1") {
+                    // --- PLAY CARDS ---
+                    ChosenHand chosenHand = handPlayer.playHand(currentHand); 
+                    int score = scoringRule.scoreHand(chosenHand); 
+                    
+                    std::cout << "Skor yang didapat: " << score << "\n";
+                    sessionState.totalScore += score; 
+                    sessionState.remainingPlays--; 
+                    
+                    // Tarik kartu baru dari dek
+                    if (currentHand.cards.size() < 8) {
+                        Hand refillCards = handGenerator.generateHand();
+                        int drawn = 0;
+                        while (currentHand.cards.size() < 8 && !refillCards.cards.empty()) {
+                            currentHand.cards.push_back(refillCards.cards.back());
+                            refillCards.cards.pop_back();
+                            drawn++;
+                        }
+                        std::cout << "[+] " << drawn << " kartu ditarik dari dek.\n";
+                    }
+
+                    // Cek Kemenangan
+                    if (sessionState.totalScore >= sessionState.currentBlind->getTargetScore()) {
+                        std::cout << "\n[!] TARGET SKOR TERCAPAI! Anda menang di Blind ini.\n";
+                        blindDefeated = true; // Ini akan memutus inner loop meja permainan
+                    }
+                    
+                } else if (tableInput == "2") {
+                    // --- DISCARD CARDS ---
+                    if (sessionState.remainingDiscards > 0) {
+                        int sizeBefore = currentHand.cards.size();
+                        handPlayer.discardCards(currentHand);
+                        
+                        // Jika pemain benar-benar membuang kartu (tidak membatalkan)
+                        if (currentHand.cards.size() < sizeBefore) {
+                            sessionState.remainingDiscards--;
+                            
+                            // Tarik kartu pengganti
+                            Hand refillCards = handGenerator.generateHand();
+                            int drawn = 0;
+                            while (currentHand.cards.size() < 8 && !refillCards.cards.empty()) {
+                                currentHand.cards.push_back(refillCards.cards.back());
+                                refillCards.cards.pop_back();
+                                drawn++;
+                            }
+                            std::cout << "[+] " << drawn << " kartu pengganti telah ditarik!\n";
+                        }
+                    } else {
+                        std::cout << "\n[X] GAGAL: Anda tidak memiliki sisa Discard!\n";
+                    }
+                } else {
+                    std::cout << "Input tidak valid!\n";
+                }
+            } // --- END OF PHASE 2 ---
+
+            // Transisi Level setelah keluar dari Meja Permainan karena Menang
+            if (blindDefeated) {
+                std::string currentName = sessionState.currentBlind->getName();
+                if (currentName == "Small Blind") {
+                    sessionState.currentBlind = std::make_unique<BigBlindState>();
+                } else if (currentName == "Big Blind") {
+                    sessionState.currentBlind = std::make_unique<BossBlindState>();
+                } else {
+                    sessionState.currentBlind = nullptr; // Boss kalah, memicu Next Ante
+                }
+                
+                sessionState.remainingPlays = 4;
+                sessionState.remainingDiscards = 3;
+                sessionState.totalScore = 0;
+            }
+
         } else {
             std::cout << "Input tidak valid!\n";
         }
-    }
+    } // --- END OF PHASE 1 ---
     
     if (sessionState.remainingPlays <= 0) {
-        std::cout << "\n[GAME OVER] Anda kehabisan kesempatan Play.\n";
+        std::cout << "\n[GAME OVER] Anda kehabisan kesempatan Play sebelum mencapai target skor.\n";
     }
     
     std::cout << "=== Run Ended ===\n";
