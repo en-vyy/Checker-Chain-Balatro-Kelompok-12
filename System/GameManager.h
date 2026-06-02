@@ -5,15 +5,18 @@
 #include "ScoringRule.h"
 #include "BlindRule.h"
 #include "RewardRule.h"
-
-// --- TAMBAHKAN 3 BARIS INI ---
 #include "RunSessionState.h"
 #include "BlindState.h"
 #include "RewardCommand.h"
 
+// --- TAMBAHAN UNTUK SISTEM MODIFIER ---
+#include "ModifierManager.h"
+
 class GameManager {
 public:
+    GameManager(); // Konstruktor untuk setup awal Joker
     void runSession(); 
+    ModifierManager& getModifierManager() { return modifierManager; }
 
 private:
     HandGenerator handGenerator;
@@ -21,7 +24,7 @@ private:
     ScoringRule scoringRule;
     BlindRule blindRule;
     RewardRule rewardRule;
-    
-    // --- INI YANG PALING PENTING DAN KETINGGALAN ---
     RunSessionState sessionState; 
+    
+    ModifierManager modifierManager; // Inisialisasi Manager
 };

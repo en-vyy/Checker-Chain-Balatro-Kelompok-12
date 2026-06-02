@@ -2,7 +2,6 @@
 #include "Hand.h"
 #include "PokerHandChecker.h"
 
-
 #include "../Mechanics/HighCardChecker.h"
 #include "../Mechanics/PairChecker.h"
 #include "../Mechanics/TwoPairChecker.h"
@@ -21,9 +20,11 @@ class ScoringRule {
 public:
     ScoringRule(); // Constructor untuk merangkai linked list nanti
     int scoreHand(const Hand& hand);
+    
+    // --- TAMBAHAN BARU: Mengambil Nama Kombinasi ---
+    std::string getRankName(const Hand& hand); 
 
 private:
-
     FlushFiveChecker flushFiveChecker;
     FlushHouseChecker flushHouseChecker;
     FiveOfAKindChecker fiveOfAKindChecker;
