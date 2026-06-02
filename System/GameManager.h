@@ -6,15 +6,22 @@
 #include "BlindRule.h"
 #include "RewardRule.h"
 
+// --- TAMBAHKAN 3 BARIS INI ---
+#include "RunSessionState.h"
+#include "BlindState.h"
+#include "RewardCommand.h"
+
 class GameManager {
 public:
-    void runSession(); // Fungsi utama yang menjalankan core loop
+    void runSession(); 
 
 private:
-    // Deklarasi objek-objek sistem yang akan dipanggil secara berurutan
     HandGenerator handGenerator;
     HandPlayer handPlayer;
     ScoringRule scoringRule;
     BlindRule blindRule;
     RewardRule rewardRule;
+    
+    // --- INI YANG PALING PENTING DAN KETINGGALAN ---
+    RunSessionState sessionState; 
 };

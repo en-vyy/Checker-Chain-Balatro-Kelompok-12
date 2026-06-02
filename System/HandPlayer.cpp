@@ -29,7 +29,7 @@ ChosenHand HandPlayer::playHand(const Hand& generatedHand) {
         // Memanggil fungsi formatRank di sini
         std::cout << i + 1 << ":[" << formatRank(generatedHand.cards[i].rank)
                    << " " << generatedHand.cards[i].suit << "]  ";
-        
+        //Untuk print hasil yang ada di tangan maksimal 4 menyamping
         if ((i + 1) % 4 == 0) std::cout << "\n";
     }
     std::cout << "\n\n";
