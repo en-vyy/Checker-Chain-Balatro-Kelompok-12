@@ -9,23 +9,24 @@
 #include "TwinEchoJoker.h"
 #include "BountyHunterJoker.h"
 
-// ==========================================
-// SETUP AWAL JOKER KELOMPOK 12
-// ==========================================
-GameManager::GameManager() {
-    modifierManager.addModifier(std::make_unique<TwinEchoJoker>());
-    modifierManager.addModifier(std::make_unique<BountyHunterJoker>());
-}
+GameManager::GameManager() {}
 
 void GameManager::runSession() {
     sessionState.currentBlind = std::make_unique<SmallBlindState>();
     sessionState.totalScore = 0;
     
     while (sessionState.remainingPlays > 0) {
+        
         if (sessionState.currentBlind == nullptr) {
             sessionState.ante++;
             std::cout << "\n========================================\n";
-            std::cout << "🎉 BOSS DIKALAHKAN! MAJU KE ANTE " << sessionState.ante << " 🎉\n";
+            std::cout << " BOSS DIKALAHKAN! MAJU KE ANTE " << sessionState.ante << " \n";
+            
+            if (sessionState.hasInvestmentTag) {
+                sessionState.money += 25;
+                sessionState.hasInvestmentTag = false;
+                std::cout << " INVESTMENT CAIR! Anda mendapat $25! (Total Uang: $" << sessionState.money << ")\n";
+            }
             std::cout << "========================================\n";
             
             sessionState.currentBlind = std::make_unique<SmallBlindState>();
@@ -43,6 +44,7 @@ void GameManager::runSession() {
         std::cout << " ANTE: " << sessionState.ante << "\n";
         std::cout << " STATE: " << sessionState.currentBlind->getName() << "\n";
         std::cout << " TARGET: " << sessionState.currentBlind->getTargetScore() << "\n";
+        std::cout << " UANG  : $" << sessionState.money << "\n";
         std::cout << "========================================\n";
         
         std::string blindInput;
@@ -74,30 +76,32 @@ void GameManager::runSession() {
                 if (tableInput == "1") {
                     ChosenHand chosenHand = handPlayer.playHand(currentHand); 
                     
-                    // ==========================================
-                    // INTEGRASI DINAMIS SISTEM JOKER & SCORING
-                    // ==========================================
-                    int skorMurni = scoringRule.scoreHand(chosenHand); 
-                    std::string namaKombinasi = scoringRule.getRankName(chosenHand);
+                    HandRank evaluasiRank = scoringRule.evaluateHand(chosenHand);
                     
                     ScorePayload payload;
-                    payload.handRankName = namaKombinasi; 
-                    payload.baseScore = skorMurni;
-                    payload.multiplier = 1;
+                    payload.handRankName = scoringRule.getRankNameStr(evaluasiRank); 
+                    
+                    int kombinasiChips = scoringRule.getBaseChips(evaluasiRank);
+                    int kartuChips = 0;
+                    for (const auto& card : chosenHand.cards) {
+                        kartuChips += scoringRule.getCardChips(card.rank); 
+                    }
+                    payload.baseScore = kombinasiChips + kartuChips; 
+                    payload.multiplier = scoringRule.getBaseMultiplier(evaluasiRank);
                     payload.playedCards = chosenHand.cards; 
 
-                    // Panggil Joker Observer
                     modifierManager.applyAllModifiers(payload);
 
                     int finalScore = payload.baseScore * payload.multiplier;
                     
                     std::cout << "\n>>> [ " << payload.handRankName << " DIMAINKAN! ] <<<\n";
-                    std::cout << "Base: " << payload.baseScore << " | Mult: " << payload.multiplier << "\n";
+                    std::cout << "Kombinasi Chips: " << kombinasiChips << " | Kartu Chips: " << kartuChips << "\n";
+                    std::cout << "Total Base: " << payload.baseScore << " Chips | Mult: " << payload.multiplier << "x\n";
                     std::cout << "SKOR FINAL: " << finalScore << "\n";
                     
                     sessionState.totalScore += finalScore; 
                     sessionState.remainingPlays--; 
-                    // ==========================================
+                    sessionState.totalPlayedHands++; 
                     
                     if (currentHand.cards.size() < 8) {
                         Hand refillCards = handGenerator.generateHand();
@@ -140,6 +144,14 @@ void GameManager::runSession() {
             } 
 
             if (blindDefeated) {
+                int baseReward = sessionState.currentBlind->getRewardMoney(); 
+                int earnedMoney = baseReward + sessionState.remainingPlays;   
+                
+                sessionState.money += earnedMoney;
+                std::cout << "\n MEMBAGIKAN HADIAH \n";
+                std::cout << "Base Reward: $" << baseReward << " | Bonus Plays: $" << sessionState.remainingPlays << "\n";
+                std::cout << "Anda mendapatkan $" << earnedMoney << " (Total Uang: $" << sessionState.money << ")\n";
+
                 std::string currentName = sessionState.currentBlind->getName();
                 if (currentName == "Small Blind") {
                     sessionState.currentBlind = std::make_unique<BigBlindState>();
@@ -147,6 +159,48 @@ void GameManager::runSession() {
                     sessionState.currentBlind = std::make_unique<BossBlindState>();
                 } else {
                     sessionState.currentBlind = nullptr; 
+                }
+
+                bool inShop = true;
+                while (inShop) {
+                    std::cout << "\n[ T O K O ] ============================\n";
+                    std::cout << " Uang Anda: $" << sessionState.money << "\n";
+                    std::cout << "----------------------------------------\n";
+                    std::cout << " 1. Beli Twin Echo Joker ($4)\n";
+                    std::cout << " 2. Beli Bounty Hunter Joker ($5)\n";
+                    std::cout << " 3. Lanjut ke Blind Berikutnya (Keluar)\n";
+                    std::cout << "========================================\n";
+                    
+                    std::string shopInput;
+                    std::cout << "Pilih barang: ";
+                    std::getline(std::cin, shopInput);
+
+                    if (shopInput == "1") {
+                        if (sessionState.money >= 4) {
+                            sessionState.money -= 4;
+                            modifierManager.addModifier(std::make_unique<TwinEchoJoker>());
+                            std::cout << "[+] Twin Echo Joker berhasil dibeli dan aktif!\n";
+                            std::cout << "Toko ditutup. Melanjutkan perjalanan...\n";
+                            inShop = false; // Toko langsung tertutup
+                        } else {
+                            std::cout << "[X] Uang Anda tidak cukup! Pilih opsi lain.\n";
+                        }
+                    } else if (shopInput == "2") {
+                        if (sessionState.money >= 5) {
+                            sessionState.money -= 5;
+                            modifierManager.addModifier(std::make_unique<BountyHunterJoker>());
+                            std::cout << "[+] Bounty Hunter Joker berhasil dibeli dan aktif!\n";
+                            std::cout << "Toko ditutup. Melanjutkan perjalanan...\n";
+                            inShop = false; // Toko langsung tertutup
+                        } else {
+                            std::cout << "[X] Uang Anda tidak cukup! Pilih opsi lain.\n";
+                        }
+                    } else if (shopInput == "3") {
+                        std::cout << "Meninggalkan toko...\n";
+                        inShop = false; 
+                    } else {
+                        std::cout << "Input tidak valid!\n";
+                    }
                 }
                 
                 sessionState.remainingPlays = 4;

@@ -1,28 +1,29 @@
 #pragma once
-#include "RunSessionState.h" // <--- Ini wajib ada agar error "incomplete type" hilang
+#include "RunSessionState.h" 
 #include <iostream>
 
-// KELAS INDUK
 class RewardCommand {
 public:
     virtual ~RewardCommand() = default; 
     virtual void execute(RunSessionState& state) = 0;
 };
 
-// ANAK 1
-class BonusHandCommand : public RewardCommand {
+// TAG 1: Handy Tag
+class HandyTagCommand : public RewardCommand {
 public:
     void execute(RunSessionState& state) override {
-        state.remainingPlays += 1;
-        std::cout << "[REWARD EXECUTED] Anda mendapatkan +1 Kesempatan Play!\n";
+        int bonus = state.totalPlayedHands * 1;
+        state.money += bonus;
+        std::cout << "[TAG EXECUTED] Handy Tag! Anda mendapat $" << bonus 
+                  << " (" << state.totalPlayedHands << " kartu telah dimainkan di run ini).\n";
     }
 };
 
-// ANAK 2
-class FreeRerollCommand : public RewardCommand {
+// TAG 2: Investment Tag
+class InvestmentTagCommand : public RewardCommand {
 public:
     void execute(RunSessionState& state) override {
-        state.freeRerolls += 1;
-        std::cout << "[REWARD EXECUTED] Anda mendapatkan +1 Free Reroll!\n";
+        state.hasInvestmentTag = true;
+        std::cout << "[TAG EXECUTED] Investment Tag aktif! Anda akan mendapat $25 setelah mengalahkan Boss Blind selanjutnya.\n";
     }
 };
