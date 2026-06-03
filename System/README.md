@@ -574,6 +574,6 @@ runSession():
 <div align="center">
 
 **Checker-Chain Balatro · Kelompok 12**  
-*Technical Design Document v1.0*
+
 
 </div>
