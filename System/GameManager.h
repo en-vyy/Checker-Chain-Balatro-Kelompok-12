@@ -9,12 +9,13 @@
 #include "BlindState.h"
 #include "RewardCommand.h"
 
-// --- TAMBAHAN UNTUK SISTEM MODIFIER ---
+// --- TAMBAHAN UNTUK SISTEM MODIFIER & SHOP ---
 #include "ModifierManager.h"
+#include "ShopManager.h" // <--- INI YANG HILANG SEBELUMNYA
 
 class GameManager {
 public:
-    GameManager(); // Konstruktor untuk setup awal Joker
+    GameManager(); 
     void runSession(); 
     ModifierManager& getModifierManager() { return modifierManager; }
 
@@ -26,5 +27,6 @@ private:
     RewardRule rewardRule;
     RunSessionState sessionState; 
     
-    ModifierManager modifierManager; // Inisialisasi Manager
+    ModifierManager modifierManager; 
+    ShopManager shopManager; // <--- DAN INI JUGA HILANG SEBELUMNYA
 };

@@ -6,8 +6,7 @@
 #include "BigBlindState.h"   
 #include "BossBlindState.h"  
 #include "RewardCommand.h"   
-#include "TwinEchoJoker.h"
-#include "BountyHunterJoker.h"
+// Include untuk Joker kini dihapus dari sini karena sudah dipindah ke ShopManager.cpp
 
 GameManager::GameManager() {}
 
@@ -161,47 +160,11 @@ void GameManager::runSession() {
                     sessionState.currentBlind = nullptr; 
                 }
 
-                bool inShop = true;
-                while (inShop) {
-                    std::cout << "\n[ T O K O ] ============================\n";
-                    std::cout << " Uang Anda: $" << sessionState.money << "\n";
-                    std::cout << "----------------------------------------\n";
-                    std::cout << " 1. Beli Twin Echo Joker ($4)\n";
-                    std::cout << " 2. Beli Bounty Hunter Joker ($5)\n";
-                    std::cout << " 3. Lanjut ke Blind Berikutnya (Keluar)\n";
-                    std::cout << "========================================\n";
-                    
-                    std::string shopInput;
-                    std::cout << "Pilih barang: ";
-                    std::getline(std::cin, shopInput);
-
-                    if (shopInput == "1") {
-                        if (sessionState.money >= 4) {
-                            sessionState.money -= 4;
-                            modifierManager.addModifier(std::make_unique<TwinEchoJoker>());
-                            std::cout << "[+] Twin Echo Joker berhasil dibeli dan aktif!\n";
-                            std::cout << "Toko ditutup. Melanjutkan perjalanan...\n";
-                            inShop = false; // Toko langsung tertutup
-                        } else {
-                            std::cout << "[X] Uang Anda tidak cukup! Pilih opsi lain.\n";
-                        }
-                    } else if (shopInput == "2") {
-                        if (sessionState.money >= 5) {
-                            sessionState.money -= 5;
-                            modifierManager.addModifier(std::make_unique<BountyHunterJoker>());
-                            std::cout << "[+] Bounty Hunter Joker berhasil dibeli dan aktif!\n";
-                            std::cout << "Toko ditutup. Melanjutkan perjalanan...\n";
-                            inShop = false; // Toko langsung tertutup
-                        } else {
-                            std::cout << "[X] Uang Anda tidak cukup! Pilih opsi lain.\n";
-                        }
-                    } else if (shopInput == "3") {
-                        std::cout << "Meninggalkan toko...\n";
-                        inShop = false; 
-                    } else {
-                        std::cout << "Input tidak valid!\n";
-                    }
-                }
+                // ==========================================
+                // MEMANGGIL LOGIKA TOKO YANG SUDAH DIPISAH
+                // ==========================================
+                shopManager.enterShop(sessionState, modifierManager);
+                // ==========================================
                 
                 sessionState.remainingPlays = 4;
                 sessionState.remainingDiscards = 3;
