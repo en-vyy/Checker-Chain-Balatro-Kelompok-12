@@ -509,46 +509,7 @@ runSession():
 
 ---
 
-## 11. Panduan Ekstensi
-
-### Menambah Kombinasi Poker Baru
-
-```
-1. Tambah nilai ke enum class HandRank di PokerHandChecker.h
-2. Buat kelas baru di Mechanics/ yang mewarisi PokerHandChecker, implementasikan check()
-3. Tambah instance ke ScoringRule (private member), daftarkan ke rantai di konstruktor
-   ⚠️  Urutan penting — kombinasi lebih kuat harus lebih dahulu
-4. Tambah entri di getBaseChips(), getBaseMultiplier(), getRankNameStr()
-```
-
-### Menambah Joker Baru
-
-```
-1. Buat kelas di Mechanics/ yang mewarisi Modifier
-2. Implementasikan getModifierName(), canActivate(), applyEffect()
-3. Tambahkan opsi pembelian di menu Toko di GameManager.cpp
-```
-
-### Menambah Blind Baru
-
-```
-1. Buat kelas di System/ yang mewarisi BlindState
-2. Implementasikan getName(), getTargetScore(), getRewardMoney(), handlePlay(), handleSkip()
-3. Buat RewardCommand baru di RewardCommand.h jika diperlukan
-4. Daftarkan transisi di GameManager.cpp pada bagian setelah blind dikalahkan
-```
-
-### ⚠️ Hal Penting untuk Pengembang
-
-- Selalu gunakan `std::make_unique<>` untuk alokasi objek polimorfik (`BlindState`, `RewardCommand`, `Modifier`)
-- Jangan tambahkan logika game di `Card.h`, `Hand.h`, atau `ScorePayload.h` — mereka adalah **pure data structs**
-- `canActivate()` di Modifier hanya boleh **READ** payload — hanya `applyEffect()` yang boleh menulis
-- Urutan rantai checker di `ScoringRule::ScoringRule()` sangat kritis — jangan ubah tanpa pertimbangan
-- `BlindRule` dan `RewardRule` adalah utilitas stateless — dapat dipakai bebas tanpa side effect
-
----
-
-## 12. Ringkasan Komponen
+## 11. Ringkasan Komponen
 
 | Komponen | File Utama | Pattern | Tanggung Jawab |
 |---|---|---|---|
